@@ -1,4 +1,16 @@
-# bropilot README
+# Bropilot README
+
+## Setup
+
+1. Install npm
+2. Install ollama `npm install -g ollama`
+3. Download llm `ollama run ~llm~` get LLM name the ollama website
+
+## How to run in development
+
+`cmd + shift + p` -> `Debug: Select and Start Debugging` -> `F5` 
+
+## **Default From Here Down**
 
 This is the README for your extension "bropilot". After writing up a brief description, we recommend including the following sections.
 

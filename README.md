@@ -1,6 +1,6 @@
 # Bropilot README
 
-## Setup
+## Setup 
 
 1. Install npm
 2. Install ollama `npm install -g ollama`

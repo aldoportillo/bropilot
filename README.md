@@ -15,6 +15,11 @@
     });
     ```
 
+## FAQ
+
+1. I downloaded a model and need to free up space to install a different model
+   - Delete the model from `~/.ollama/models` and run `ollama run ~llm~` to download the new model
+
 ## How to run in development
 
 `cmd + shift + p` -> `Debug: Select and Start Debugging` -> `F5` 

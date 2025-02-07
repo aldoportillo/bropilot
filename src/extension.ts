@@ -1,4 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
 import * as vscode from 'vscode';
 import ollama from 'ollama';
 
@@ -17,10 +16,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 		panel.webview.html = getWebviewContent();
 
+		let conversation: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+
 		panel.webview.onDidReceiveMessage(async (message: any) => {
 			if (message.command === 'submit') {
 				const prompt = message.prompt;
-				let resText = '';
+				conversation.push({ role: 'user', content: prompt });
+
+				panel.webview.postMessage({ command: 'updateChat', messages: conversation });
+
+				let currentAssistantIndex: number | null = null;
+				let streamResText = '';
 
 				try {
 					const streamRes = await ollama.chat({
@@ -29,12 +35,30 @@ export function activate(context: vscode.ExtensionContext) {
 						stream: true
 					});
 
-					for await (const res of streamRes) {
-						resText += res.message.content;
-						panel.webview.postMessage({ command: 'chatResponse', text: resText });
+					for await (const chunk of streamRes) {
+						if (currentAssistantIndex === null) {
+							conversation.push({ role: 'assistant', content: '' });
+							currentAssistantIndex = conversation.length - 1;
+						}
+						streamResText += chunk.message.content;
+						conversation[currentAssistantIndex].content = streamResText;
+
+						panel.webview.postMessage({
+							command: 'updateChat',
+							messages: conversation
+						});
 					}
 				} catch (error: any) {
-					panel.webview.postMessage({ command: 'chatResponse', text: `Error: ${error.message}` });
+					conversation.push({
+						role: 'assistant',
+						content: `Error: ${error.message}`
+					});
+					panel.webview.postMessage({
+						command: 'updateChat',
+						messages: conversation
+					});
+				} finally {
+					panel.webview.postMessage({ command: 'done' });
 				}
 			}
 		});
@@ -48,45 +72,59 @@ function getWebviewContent(): string {
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>BroPilot</title>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css" />
+
 		<style>
+			html, body {
+				height: 100%;
+				padding: 0;
+				margin: 0;
+			}
 			body {
+				display: flex;
+				flex-direction: column;
 				font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
-				padding: 20px;
 				background-color: var(--vscode-editor-background);
 				color: var(--vscode-editor-foreground);
 			}
-			.container {
-				max-width: 800px;
-				margin: 0 auto;
-			}
-			h1 {
+			.header {
+				background-color: var(--vscode-button-background);
 				color: var(--vscode-button-foreground);
+				padding: 0.75rem 1rem;
 				border-bottom: 1px solid var(--vscode-button-border);
-				padding-bottom: 0.5em;
 			}
-			.prompt-container {
-				margin: 20px 0;
+			.header h1 {
+				margin: 0;
+				font-size: 1.25rem;
+			}
+			.chat-container {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1rem;
+			}
+			.input-container {
 				display: flex;
-				flex-direction: column;
-				gap: 10px;
+				gap: 0.5rem;
+				padding: 0.75rem;
+				border-top: 1px solid var(--vscode-button-border);
+				background-color: var(--vscode-editor-background);
 			}
 			#prompt {
-				width: 100%;
-				height: 150px;
-				padding: 10px;
+				flex: 1;
+				resize: none;
+				height: 60px;
+				padding: 0.5rem;
 				border: 1px solid var(--vscode-input-border);
 				background-color: var(--vscode-input-background);
 				color: var(--vscode-input-foreground);
-				resize: vertical;
-				font-family: var(--vscode-font-family);
+				font-family: var(--vscode-editor-font-family);
 			}
 			#submit {
-				align-self: flex-start;
-				padding: 8px 16px;
+				padding: 0.5rem 1rem;
 				background-color: var(--vscode-button-background);
 				color: var(--vscode-button-foreground);
 				border: 1px solid var(--vscode-button-border);
@@ -96,25 +134,29 @@ function getWebviewContent(): string {
 			#submit:hover {
 				background-color: var(--vscode-button-hoverBackground);
 			}
-			#response {
-				white-space: pre-wrap;
-				margin-top: 20px;
-				padding: 15px;
-				background-color: var(--vscode-notifications-background);
-				border: 1px solid var(--vscode-notifications-border);
-				border-radius: 3px;
-				min-height: 200px;
-				max-height: 60vh;
-				overflow-y: auto;
-				font-family: var(--vscode-editor-font-family);
-				font-size: var(--vscode-editor-font-size);
+			.message-row {
+				display: flex;
+				margin-bottom: 1rem;
 			}
-			.description {
-				margin-bottom: 20px;
-				color: var(--vscode-descriptionForeground);
-				line-height: 1.5;
+			.message {
+				padding: 0.75rem;
+				border-radius: 8px;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+				max-width: 80%;
+			}
+			.user-message {
+				align-self: flex-end;
+				background-color: var(--vscode-editorSelectionBackground);
+				margin-left: auto;
+			}
+			.assistant-message {
+				align-self: flex-start;
+				background-color: var(--vscode-notificationsBackground);
+				margin-right: auto;
 			}
 		</style>
+
 		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 		<script>
@@ -128,59 +170,97 @@ function getWebviewContent(): string {
 				},
 				langPrefix: 'hljs language-'
 			});
-		</script>
-	</head>
-	<body>
-		<div class="container">
-			<h1>BroPilot</h1>
-			<p class="description">
-				BroPilot helps you write better code by providing you with code snippets, examples, and templates.
-			</p>
-			
-			<div class="prompt-container">
-				<textarea 
-					id="prompt" 
-					placeholder="Enter your coding question or prompt here..."
-					spellcheck="false"
-				></textarea>
-				<button id="submit">Generate Code</button>
-			</div>
 
-			<div id="response"></div>
-		</div>
-
-		<script>
 			const vscode = acquireVsCodeApi();
-			const responseDiv = document.getElementById('response');
-			const submitButton = document.getElementById('submit');
 
-			document.getElementById('submit').addEventListener('click', () => {
-				const prompt = document.getElementById('prompt').value;
-				if (!prompt.trim()) return;
-				
+			let messages = [];
+
+			function renderMessages() {
+				const chatContainer = document.getElementById('chat-container');
+				chatContainer.innerHTML = '';
+
+				messages.forEach(msg => {
+					const row = document.createElement('div');
+					row.className = 'message-row';
+
+					const bubble = document.createElement('div');
+					bubble.classList.add('message');
+
+					if (msg.role === 'user') {
+						bubble.classList.add('user-message');
+						bubble.innerHTML = marked.parse(msg.content);
+						hljs.highlightAll();
+					} else {
+						bubble.classList.add('assistant-message');
+						bubble.innerHTML = marked.parse(msg.content);
+						hljs.highlightAll();
+					}
+
+					row.appendChild(bubble);
+					chatContainer.appendChild(row);
+				});
+
+				chatContainer.scrollTop = chatContainer.scrollHeight;
+			}
+
+			function handleSend() {
+				const promptField = document.getElementById('prompt');
+				const submitButton = document.getElementById('submit');
+				const prompt = promptField.value.trim();
+				if (!prompt) return;
+
 				submitButton.disabled = true;
 				submitButton.textContent = 'Generating...';
-				responseDiv.innerHTML = '';
-
 				vscode.postMessage({
 					command: 'submit',
 					prompt: prompt
 				});
-			});
+				promptField.value = '';
+			}
 
 			window.addEventListener('message', event => {
-				const { command, text } = event.data;
-				if (command === 'chatResponse') {
-					responseDiv.innerHTML = marked.parse(text);
-					hljs.highlightAll();
-					submitButton.disabled = false;
-					submitButton.textContent = 'Generate Code';
-					responseDiv.scrollTop = responseDiv.scrollHeight;
+				const data = event.data;
+				switch (data.command) {
+					case 'updateChat':
+						messages = data.messages;
+						renderMessages();
+						break;
+					case 'done':
+						const submitButton = document.getElementById('submit');
+						submitButton.disabled = false;
+						submitButton.textContent = 'Send';
+						break;
 				}
 			});
+
+			window.addEventListener('DOMContentLoaded', () => {
+				const submitButton = document.getElementById('submit');
+				const promptField = document.getElementById('prompt');
+
+				submitButton.addEventListener('click', handleSend);
+
+				promptField.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						handleSend();
+					}
+				});
+			});
 		</script>
+	</head>
+	<body>
+		<div class="header">
+			<h1>BroPilot</h1>
+		</div>
+		<div class="chat-container" id="chat-container"></div>
+
+		<div class="input-container">
+			<textarea id="prompt" placeholder="Type your question..." spellcheck="false"></textarea>
+			<button id="submit">Send</button>
+		</div>
 	</body>
-	</html>`;
+	</html>
+	`;
 }
 
-export function deactivate() { }
+export function deactivate() {}

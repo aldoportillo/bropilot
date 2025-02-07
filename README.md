@@ -1,10 +1,19 @@
 # Bropilot README
 
-## Setup 
+## Setup
 
 1. Install npm
 2. Install ollama `npm install -g ollama`
 3. Download llm `ollama run ~llm~` get LLM name the ollama website
+4. In the `ollama.chat method` change the model to the LLM version
+
+   ```javascript
+   const streamRes = await ollama.chat({
+      model: 'deepseek-r1:671b',
+	  messages: [{ role: 'user', content: prompt }],
+      stream: true
+    });
+    ```
 
 ## How to run in development
 

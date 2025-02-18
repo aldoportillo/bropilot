@@ -1,5 +1,9 @@
 # Bropilot
 
+## Introduction
+
+Bropilot is a VSCode extension that brings GitHub Copilot–like autocompletion and an interactive chat interface to your editor by running your own local LLM via Ollama. Use Bropilot for inline code snippet suggestions and conversational assistance directly in VSCode!
+
 ## Setup
 
 1. Install npm

@@ -9,11 +9,11 @@
 
    ```javascript
    const streamRes = await ollama.chat({
-      model: 'deepseek-r1:671b',
-	  messages: [{ role: 'user', content: prompt }],
-      stream: true
-    });
-    ```
+     model: "deepseek-r1:671b",
+     messages: [{ role: "user", content: prompt }],
+     stream: true,
+   });
+   ```
 
 ## FAQ
 
@@ -22,76 +22,51 @@
 
 ## How to run in development
 
-`cmd + shift + p` -> `Debug: Select and Start Debugging` -> `F5` 
-
-## **Default From Here Down**
-
-This is the README for your extension "bropilot". After writing up a brief description, we recommend including the following sections.
+`cmd + shift + p` -> `Debug: Select and Start Debugging` -> `F5`
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Inline Autocompletion:
+  Get code snippet suggestions based on context using your local LLM via Ollama. Suggestions appear as ghost text in your editor and can be accepted with Tab.
 
-For example if there is an image subfolder under your extension project workspace:
+- Interactive Chat Panel:
+  Open a dedicated chat panel to have an interactive conversation with your LLM for more complex queries and debugging help.
 
-\!\[feature X\]\(images/feature-x.png\)
+- Toggle Autocompletion:
+  Easily enable or disable inline autocompletion via a command in the Command Palette.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Screenshots
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Node.js & npm: Ensure Node.js and npm are installed.
+- Ollama CLI: Installed globally via `npm install -g ollama`
+- A Supported LLM: Download and run your preferred LLM from Ollama (see Setup instructions).
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Bropilot adds the following VS Code commands (via the contributes.commands extension point):
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- bropilot.openChat: Opens the interactive chat panel.
+- bropilot.toggleAutocomplete: Toggles inline autocompletion on and off.
+  You can further configure these settings in your VS Code settings if you add configuration options in the future.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Model Response Format:
+If the LLM does not return a Markdown code block as expected, the extension may display the full explanation. Ensure that your prompt is explicit and the LLM supports returning only code snippets.
+Performance:
+Autocompletion quality may vary depending on your local machine performance and the chosen model.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- 1.0.0
+    Initial release of Bropilot.
+Added inline autocompletion powered by a local LLM via Ollama.
+Introduced interactive chat panel for extended conversation with the model.
+- 1.0.1
+Fixed minor issues with code snippet extraction.
+Added a command to toggle autocompletion.
+- 1.1.0
+Improved prompt instructions for better code-only responses.
+Enhanced logging for easier debugging.

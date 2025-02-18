@@ -1,4 +1,4 @@
-# Bropilot README
+# Bropilot
 
 ## Setup
 
@@ -60,13 +60,10 @@ Autocompletion quality may vary depending on your local machine performance and 
 
 ## Release Notes
 
-- 1.0.0
-    Initial release of Bropilot.
+- 0.1.1: Initial creation of Bropilot.
 Added inline autocompletion powered by a local LLM via Ollama.
 Introduced interactive chat panel for extended conversation with the model.
-- 1.0.1
-Fixed minor issues with code snippet extraction.
+- 0.1.2: Fixed minor issues with code snippet extraction.
 Added a command to toggle autocompletion.
-- 1.1.0
-Improved prompt instructions for better code-only responses.
+- 0.1.3: Improved prompt instructions for better code-only responses.
 Enhanced logging for easier debugging.

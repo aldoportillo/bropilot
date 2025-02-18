@@ -9,22 +9,29 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:bropilot.openChat",
+    "onCommand:bropilot.toggleAutocomplete"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "bropilot.start",
-        "title": "Open Bropilot on New Window"
+        "command": "bropilot.openChat",
+        "title": "Open BroPilot Chat"
+      },
+      {
+        "command": "bropilot.toggleAutocomplete",
+        "title": "Toggle BroPilot Autocompletion"
       }
     ],
     "themes": [
-		{
-			"label": "BroPilot",
-			"uiTheme": "vs-dark",
-			"path": "./themes/bropilot-color-theme.json"
-		}
-	]
+      {
+        "label": "BroPilot",
+        "uiTheme": "vs-dark",
+        "path": "./themes/bropilot-color-theme.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
